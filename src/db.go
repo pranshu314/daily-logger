@@ -54,12 +54,10 @@ func (ldb *logDB) tableExists(name string) bool {
 func (ldb *logDB) createTable(name string) error {
 	switch name {
 	case "projects":
-		// TODO: Complete the SQL Query
-		_, err := ldb.db.Exec(`CREATE TABLE "projects"`)
+		_, err := ldb.db.Exec(`CREATE TABLE "projects" ( "id" INTEGER, "created" DATETIME, "name" TEXT NOT NULL, "description" TEXT, "repo_link" TEXT, PRIMARY KEY("id" AUTOINCREMENT) )`)
 		return err
 	case "logs":
-		// TODO: Complete the SQL Query
-		_, err := ldb.db.Exec(`CREATE TABLE "logs"`)
+		_, err := ldb.db.Exec(`CREATE TABLE "logs" ( "id" INTEGER, "created" DATETIME, "project_id" INTEGER, "log_entry" BLOB, PRIMARY KEY("id" AUTOINCREMENT), FOREIGN KEY(project_id) REFERENCES projects(id) )`)
 		return err
 	}
 	return errors.New("The program doesnot support creation of table with the name " + name)
