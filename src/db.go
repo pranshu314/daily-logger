@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -42,6 +43,16 @@ func (l lg) Get() string {
 		l.PROJECT,
 		l.LOG_ENTRY,
 	)
+}
+
+func initLogDir(path string) error {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return os.Mkdir(path, 0o770)
+		}
+		return err
+	}
+	return nil
 }
 
 func (ldb *logDB) tableExists(name string) bool {
