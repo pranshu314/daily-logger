@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"time"
 )
 
@@ -77,4 +78,94 @@ func (ldb *logDB) createTable(name string) error {
 func dummy() {
 	logg := lg{time.Now(), "Log entry", "Dummy Project", 456}
 	fmt.Println(logg.Get())
+}
+
+func (ldb *logDB) insert(project string, log_entry string) error {
+	_, err := ldb.db.Exec(
+		"INSERT INTO logs(created, project, log_entry) VALUES (?, ?, ?)",
+		time.Now(),
+		project,
+		log_entry,
+	)
+
+	return err
+}
+
+func (ldb *logDB) delete(id uint) error {
+	_, err := ldb.db.Exec(
+		"DELETE FROM logs WHERE id = ?",
+		id,
+	)
+
+	return err
+}
+
+func (orij *lg) merge(lg lg) {
+	uValues := reflect.ValueOf(&lg).Elem()
+	oValues := reflect.ValueOf(orij).Elem()
+
+	for i := 0; i < uValues.NumField(); i++ {
+		uField := uValues.Field(i).Interface()
+		if oValues.CanSet() {
+			if v, ok := uField.(int64); ok && uField != 0 {
+				oValues.Field(i).SetInt(v)
+			}
+			if v, ok := uField.(string); ok && uField != "" {
+				oValues.Field(i).SetString(v)
+			}
+		}
+	}
+}
+
+func (ldb *logDB) update(lg lg) error {
+	orij, err := ldb.getLogEntry(lg.ID)
+	if err != nil {
+		return err
+	}
+
+	orij.merge(lg)
+	_, err = ldb.db.Exec(
+		"UPDATE logs SET project = ?, log_entry = ? WHERE id = ?",
+		orij.PROJECT,
+		orij.LOG_ENTRY,
+		orij.ID,
+	)
+
+	return err
+}
+
+func (ldb *logDB) getLogEntry(id uint) (lg, error) {
+	var lg lg
+	err := ldb.db.QueryRow("SELECT * FROM logs WHERE id = ?", id).Scan(
+		&lg.ID,
+		&lg.PROJECT,
+		&lg.LOG_ENTRY,
+		&lg.CREATED,
+	)
+
+	return lg, err
+}
+
+func (ldb *logDB) getProjectLogs(project string) ([]lg, error) {
+	var lgs []lg
+	rows, err := ldb.db.Query("SELECT * FROM logs WHERE project = ? ORDER BY created ASC", project)
+	if err != nil {
+		return lgs, fmt.Errorf("unable to get values: %w", err)
+	}
+
+	for rows.Next() {
+		var lg lg
+		err = rows.Scan(
+			&lg.ID,
+			&lg.CREATED,
+			&lg.PROJECT,
+			&lg.LOG_ENTRY,
+		)
+		if err != nil {
+			return lgs, err
+		}
+		lgs = append(lgs, lg)
+	}
+
+	return lgs, err
 }
