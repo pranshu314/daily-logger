@@ -136,3 +136,24 @@ var updateCmd = &cobra.Command{
 		return ldb.update(newLog)
 	},
 }
+
+func init() {
+	updateCmd.Flags().StringP(
+		"project",
+		"p",
+		"",
+		"specify the project name",
+	)
+	updateCmd.Flags().StringP(
+		"log_entry",
+		"l",
+		"",
+		"specify the log entry",
+	)
+
+	rootCmd.AddCommand(whereCmd)
+	rootCmd.AddCommand(addLogCmd)
+	rootCmd.AddCommand(deleteCmd)
+	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(updateCmd)
+}

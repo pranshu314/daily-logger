@@ -75,10 +75,10 @@ func (ldb *logDB) createTable(name string) error {
 	return errors.New("The program doesnot support creation of table with the name " + name)
 }
 
-func dummy() {
-	logg := lg{time.Now(), "Log entry", "Dummy Project", 456}
-	fmt.Println(logg.Get())
-}
+// func dummy() {
+// 	logg := lg{time.Now(), "Log entry", "Dummy Project", 456}
+// 	fmt.Println(logg.Get())
+// }
 
 func (ldb *logDB) insert(project string, log_entry string) error {
 	_, err := ldb.db.Exec(

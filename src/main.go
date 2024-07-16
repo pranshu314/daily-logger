@@ -49,6 +49,8 @@ func openDB(path string) (*logDB, error) {
 }
 
 func main() {
-	fmt.Println("Hello, World!")
-	dummy()
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
