@@ -57,10 +57,11 @@ func initLogDir(path string) error {
 }
 
 func (ldb *logDB) tableExists(name string) bool {
-	if _, err := ldb.db.Exec("SELECT * FROM ?", name); err == nil {
-		return true
+	if _, err := ldb.db.Exec(fmt.Sprintf("SELECT * FROM %s", name)); err != nil {
+		fmt.Println(err)
+		return false
 	}
-	return false
+	return true
 }
 
 func (ldb *logDB) createTable(name string) error {
@@ -168,4 +169,25 @@ func (ldb *logDB) getProjectLogs(project string) ([]lg, error) {
 	}
 
 	return lgs, err
+}
+
+func (ldb *logDB) getProjects() ([]string, error) {
+	var projects []string
+	rows, err := ldb.db.Query("SELECT DISTINCT project FROM logs ORDER BY project")
+	if err != nil {
+		return projects, fmt.Errorf("unable to get values: %w", err)
+	}
+
+	for rows.Next() {
+		var project string
+		err = rows.Scan(
+			&project,
+		)
+		if err != nil {
+			return projects, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, err
 }

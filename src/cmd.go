@@ -11,6 +11,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	terminal_red              = "\033[1;31m"
+	terminal_yellow           = "\033[1;33m"
+	terminal_reset_formatting = "\033[0m"
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "lg",
 	Short: "A cli application to log your thoughts while coding.",
@@ -52,7 +58,7 @@ var addLogCmd = &cobra.Command{
 			if len(strings.TrimSpace(line)) == 0 {
 				break
 			}
-			lines = lines + "\n" + line
+			lines = lines + line
 		}
 
 		if err := ldb.insert(args[0], lines); err != nil {
@@ -100,6 +106,30 @@ var listCmd = &cobra.Command{
 		}
 
 		for _, v := range logs {
+			fmt.Printf("%s%s: (%d) [%s]%s \n%s\n", terminal_yellow, v.CREATED, v.ID, v.PROJECT, terminal_reset_formatting, v.LOG_ENTRY)
+		}
+
+		return nil
+	},
+}
+
+var projectsCmd = &cobra.Command{
+	Use:   "projects",
+	Short: "List all the projects.",
+	Args:  cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ldb, err := openDB(setupPath())
+		if err != nil {
+			return err
+		}
+		defer ldb.db.Close()
+
+		projects, err := ldb.getProjects()
+		if err != nil {
+			return err
+		}
+
+		for _, v := range projects {
 			fmt.Println(v)
 		}
 
@@ -156,4 +186,5 @@ func init() {
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(projectsCmd)
 }

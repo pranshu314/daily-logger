@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "github.com/mattn/go-sqlite3"
 	gap "github.com/muesli/go-app-paths"
 )
 
@@ -39,6 +40,7 @@ func openDB(path string) (*logDB, error) {
 
 	lg := logDB{db, path}
 	if !lg.tableExists("logs") {
+		// fmt.Println("Inside tableExists")
 		err := lg.createTable("logs")
 		if err != nil {
 			return nil, err
